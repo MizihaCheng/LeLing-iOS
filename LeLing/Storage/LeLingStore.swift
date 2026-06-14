@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 // MARK: - 本地存储（健康自查记录，存在本机 JSON，不上传）
 
