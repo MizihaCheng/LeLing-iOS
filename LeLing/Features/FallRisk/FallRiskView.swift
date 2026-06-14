@@ -25,7 +25,7 @@ struct FallRiskIntroView: View {
                     .foregroundStyle(LeLingColor.accentDeep)
 
                 NavigationLink {
-                    FallRiskSessionView()
+                    FallRiskFramingView()
                 } label: {
                     Text("我准备好了，开始")
                 }
@@ -51,6 +51,58 @@ struct FallRiskIntroView: View {
                 .font(.senior(.body))
                 .foregroundStyle(LeLingColor.primaryText)
         }
+    }
+}
+
+/// B2 · 取景对位（人形框引导，UI 静态版）
+struct FallRiskFramingView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color.black.opacity(0.85))
+
+                // 虚线人形对位框
+                VStack(spacing: 8) {
+                    Image(systemName: "figure.stand")
+                        .font(.system(size: 130))
+                        .foregroundStyle(.white.opacity(0.55))
+                    Text("站这里")
+                        .font(.senior(.caption))
+                        .foregroundStyle(.white.opacity(0.65))
+                }
+                .padding(.horizontal, 40)
+                .padding(.vertical, 24)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 3, dash: [10, 8]))
+                        .foregroundStyle(.white.opacity(0.7))
+                )
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 360)
+
+            Label("请再后退一点，露出双脚", systemImage: "exclamationmark.triangle.fill")
+                .font(.senior(.headline))
+                .foregroundStyle(LeLingColor.caution)
+
+            Text("站进框里、对好后会自动开始")
+                .font(.senior(.caption))
+                .foregroundStyle(LeLingColor.secondaryText)
+
+            Spacer()
+
+            NavigationLink {
+                FallRiskSessionView()
+            } label: {
+                Text("我已站好，开始")
+            }
+            .buttonStyle(SeniorPrimaryButtonStyle())
+        }
+        .padding()
+        .seniorScreen()
+        .navigationTitle("请站到框里")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
