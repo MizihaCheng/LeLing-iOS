@@ -1,39 +1,37 @@
 import SwiftUI
 
-// MARK: - C. 心率 / 呼吸自查流程（UI 静态版，不接 rPPG）
+// MARK: - C. 心率 / 呼吸自查（后摄手指法，真实测量）
 
 /// C1 · 说明页
 struct VitalsIntroView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
-                CameraPlaceholder(caption: "脸正对前置摄像头")
-                    .frame(height: 180)
+                Image(systemName: "hand.point.up.left.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(LeLingColor.risk)
+                    .padding(.top, 8)
 
                 VStack(alignment: .leading, spacing: 14) {
                     Text("怎么做")
                         .font(.senior(.headline))
                         .foregroundStyle(LeLingColor.primaryText)
-                    stepRow("①", "坐稳，光线充足")
-                    stepRow("②", "脸正对屏幕上方摄像头")
-                    stepRow("③", "保持不动约 30 秒")
+                    stepRow("①", "用食指轻轻盖住手机背面的摄像头和闪光灯")
+                    stepRow("②", "力度稳住，别一会松一会紧")
+                    stepRow("③", "保持不动约 30 秒，正常呼吸")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Label("测量时请勿说话", systemImage: "speaker.wave.2.fill")
+                Label("会打开闪光灯，属正常现象", systemImage: "flashlight.on.fill")
                     .font(.senior(.body))
                     .foregroundStyle(LeLingColor.accentDeep)
 
                 NavigationLink {
-                    VitalsMeasuringView()
+                    VitalsMeasureView()
                 } label: {
                     Text("开始测量")
                 }
                 .buttonStyle(SeniorPrimaryButtonStyle())
-
-                Text("〔切换〕也可改用手指贴后置摄像头")
-                    .font(.senior(.caption))
-                    .foregroundStyle(LeLingColor.secondaryText)
             }
             .padding()
         }
@@ -54,91 +52,131 @@ struct VitalsIntroView: View {
     }
 }
 
-/// C2 · 测量中（静态示例：进度环 + 心跳）
-struct VitalsMeasuringView: View {
-    var body: some View {
-        VStack(spacing: 28) {
-            CameraPlaceholder(caption: "脸部取景")
-                .frame(width: 160, height: 160)
-                .clipShape(Circle())
-                .padding(.top, 12)
+/// C2/C3 · 测量中 + 结果（同一页随状态切换）
+struct VitalsMeasureView: View {
+    @EnvironmentObject private var store: LeLingStore
+    @StateObject private var m = PPGMeasurer()
+    @Environment(\.dismiss) private var dismiss
+    @State private var saved = false
 
+    var body: some View {
+        VStack(spacing: 24) {
+            switch m.phase {
+            case .idle, .measuring: measuringUI
+            case .done:             resultUI
+            case .failed:           failedUI
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .seniorScreen()
+        .navigationTitle("心率 / 呼吸")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { if m.phase == .idle { m.start() } }
+        .onDisappear { m.cancel() }
+    }
+
+    // 测量中
+    private var measuringUI: some View {
+        VStack(spacing: 28) {
+            Spacer()
             ZStack {
+                Circle().stroke(LeLingColor.divider, lineWidth: 16)
                 Circle()
-                    .stroke(LeLingColor.divider, lineWidth: 16)
-                Circle()
-                    .trim(from: 0, to: 0.68)
+                    .trim(from: 0, to: m.progress)
                     .stroke(LeLingColor.accent, style: StrokeStyle(lineWidth: 16, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Text("68%")
+                Text("\(Int(m.progress * 100))%")
                     .font(.senior(.title))
                     .foregroundStyle(LeLingColor.primaryText)
             }
-            .frame(width: 180, height: 180)
+            .frame(width: 200, height: 200)
+            .animation(.linear(duration: 0.1), value: m.progress)
 
-            Text("❤️ 测量中…")
-                .font(.senior(.headline))
-                .foregroundStyle(LeLingColor.primaryText)
+            if m.fingerOK {
+                Label("测量中…请保持不动", systemImage: "heart.fill")
+                    .font(.senior(.headline))
+                    .foregroundStyle(LeLingColor.good)
+            } else {
+                Label("请把食指盖住背面摄像头", systemImage: "exclamationmark.triangle.fill")
+                    .font(.senior(.headline))
+                    .foregroundStyle(LeLingColor.caution)
+            }
 
-            Label("“保持不动，马上就好”", systemImage: "speaker.wave.2.fill")
-                .font(.senior(.body))
-                .foregroundStyle(LeLingColor.accentDeep)
+            Spacer()
+            Button { dismiss() } label: {
+                Text("取消")
+                    .font(.senior(.headline))
+                    .foregroundStyle(LeLingColor.secondaryText)
+                    .frame(maxWidth: .infinity, minHeight: 60)
+                    .background(LeLingColor.cardSurface, in: RoundedRectangle(cornerRadius: 18))
+            }
+        }
+    }
+
+    // 结果
+    private var resultUI: some View {
+        VStack(spacing: 20) {
+            HStack(spacing: 14) {
+                bigVital(icon: "❤️", name: "心率", value: "\(m.heartRate)",
+                         unit: "次/分", level: hrLevel(m.heartRate))
+                bigVital(icon: "🫁", name: "呼吸", value: m.respiration > 0 ? "\(m.respiration)" : "—",
+                         unit: "次/分", level: rrLevel(m.respiration))
+            }
+
+            Text("结果仅供参考，非医疗诊断。")
+                .font(.senior(.caption))
+                .foregroundStyle(LeLingColor.secondaryText)
 
             Spacer()
 
-            NavigationLink {
-                VitalsResultView()
+            Button {
+                store.addVitals(heartRate: m.heartRate, respiration: m.respiration)
+                saved = true
+                dismiss()
             } label: {
-                Text("查看结果（示例）")
+                Label(saved ? "已保存" : "保存", systemImage: "square.and.arrow.down")
             }
             .buttonStyle(SeniorPrimaryButtonStyle())
-        }
-        .padding()
-        .seniorScreen()
-        .navigationTitle("测量中")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
 
-/// C3 · 结果页
-struct VitalsResultView: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                HStack(spacing: 14) {
-                    vitalResult(icon: "❤️", name: "心率", value: "72", unit: "次/分", note: "比上次 ↓3", level: .good)
-                    vitalResult(icon: "🫁", name: "呼吸", value: "16", unit: "次/分", note: "正常", level: .good)
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("解读")
-                        .font(.senior(.headline))
-                        .foregroundStyle(LeLingColor.primaryText)
-                    Text("心率与呼吸都在正常范围。")
-                        .font(.senior(.body))
-                        .foregroundStyle(LeLingColor.secondaryText)
-                }
-                .seniorCard()
-
-                HStack(spacing: 14) {
-                    Button { } label: {
-                        Label("保存", systemImage: "square.and.arrow.down").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(SeniorPrimaryButtonStyle())
-                    Button { } label: {
-                        Label("发子女", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(SeniorPrimaryButtonStyle())
-                }
+            Button { m.reset(); m.start() } label: {
+                Text("重新测一次")
+                    .font(.senior(.headline))
+                    .foregroundStyle(LeLingColor.accentDeep)
+                    .frame(maxWidth: .infinity, minHeight: 60)
             }
-            .padding()
         }
-        .seniorScreen()
-        .navigationTitle("自查结果")
-        .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func vitalResult(icon: String, name: String, value: String, unit: String, note: String, level: HealthLevel) -> some View {
+    // 失败
+    private var failedUI: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 64))
+                .foregroundStyle(LeLingColor.caution)
+            Text("没测到，请重试")
+                .font(.senior(.title))
+                .foregroundStyle(LeLingColor.primaryText)
+            Text("把食指盖住背面摄像头和闪光灯，力度稳住、保持不动再试一次。")
+                .font(.senior(.body))
+                .foregroundStyle(LeLingColor.secondaryText)
+                .multilineTextAlignment(.center)
+            Spacer()
+            Button { m.reset(); m.start() } label: { Text("重新测一次") }
+                .buttonStyle(SeniorPrimaryButtonStyle())
+        }
+    }
+
+    // 等级判断（筛查级简单阈值）
+    private func hrLevel(_ hr: Int) -> HealthLevel {
+        (60...100).contains(hr) ? .good : .caution
+    }
+    private func rrLevel(_ rr: Int) -> HealthLevel {
+        rr == 0 ? .caution : ((12...20).contains(rr) ? .good : .caution)
+    }
+
+    private func bigVital(icon: String, name: String, value: String, unit: String, level: HealthLevel) -> some View {
         VStack(spacing: 8) {
             Text("\(icon) \(name)")
                 .font(.senior(.headline))
@@ -147,17 +185,12 @@ struct VitalsResultView: View {
                 .font(.system(size: 56, weight: .bold, design: .rounded))
                 .foregroundStyle(LeLingColor.primaryText)
             HStack(spacing: 5) {
-                Text(unit)
-                    .font(.senior(.caption))
-                    .foregroundStyle(LeLingColor.secondaryText)
+                Text(unit).font(.senior(.caption)).foregroundStyle(LeLingColor.secondaryText)
                 Circle().fill(level.color).frame(width: 12, height: 12)
             }
-            Text(note)
-                .font(.senior(.caption))
-                .foregroundStyle(LeLingColor.secondaryText)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 22)
         .background(LeLingColor.cardSurface, in: RoundedRectangle(cornerRadius: 22))
     }
 }
