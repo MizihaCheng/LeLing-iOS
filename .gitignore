@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Xcode - user-specific state (do NOT ignore .xcodeproj itself)
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+
+# Swift Package Manager
+/.build
+/Packages
+.swiftpm/
+
+.netrc
+
+# 个人/真实健康数据备份与导出（公开仓库别提交）
+LeLing_backup_*.json
+LeLing_export_*.json
+LeLing_records_*.csv
+
+# 接口密钥
+Secrets.swift
+.env
