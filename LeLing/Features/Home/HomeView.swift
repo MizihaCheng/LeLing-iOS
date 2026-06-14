@@ -20,6 +20,21 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
+                    // 大号紧急呼叫按钮（红色，醒目）
+                    Button {
+                        showSOS = true
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 32, weight: .bold))
+                            Text("紧急呼叫")
+                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 78)
+                        .background(LeLingColor.risk, in: RoundedRectangle(cornerRadius: 22))
+                    }
+
                     // 超大主按钮
                     Button {
                         onStartCheck()
@@ -66,17 +81,6 @@ struct HomeView: View {
             }
             .seniorScreen()
             .navigationTitle("乐龄守护")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(role: .destructive) {
-                        showSOS = true
-                    } label: {
-                        Label("紧急呼叫", systemImage: "phone.fill")
-                            .font(.headline)
-                    }
-                    .tint(LeLingColor.risk)
-                }
-            }
             .fullScreenCover(isPresented: $showSOS) {
                 SOSView()
             }

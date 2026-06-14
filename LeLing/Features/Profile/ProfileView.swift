@@ -82,9 +82,25 @@ struct ProfileRow: View {
 
 // MARK: - G1 · 紧急联系人
 struct EmergencyContactsView: View {
+    @State private var autoFallAlert = true
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // 自动跌倒报警开关
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle(isOn: $autoFallAlert) {
+                        Label("检测到跌倒，自动呼叫", systemImage: "figure.fall")
+                            .font(.senior(.headline))
+                            .foregroundStyle(LeLingColor.primaryText)
+                    }
+                    .tint(LeLingColor.risk)
+                    Text("手机带在身上时，若感应到疑似摔倒，会先弹出倒计时，没取消就自动拨打紧急联系人。")
+                        .font(.senior(.caption))
+                        .foregroundStyle(LeLingColor.secondaryText)
+                }
+                .seniorCard()
+
                 Text("SOS 会按顺序拨打这些电话")
                     .font(.senior(.body))
                     .foregroundStyle(LeLingColor.secondaryText)
