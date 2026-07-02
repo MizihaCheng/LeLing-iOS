@@ -61,7 +61,8 @@ struct TodayView: View {
                 .padding()
             }
             .seniorScreen()
-            .navigationTitle("乐龄守护")
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

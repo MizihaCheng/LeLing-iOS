@@ -27,16 +27,17 @@ struct PottedFlowerView: View {
     var showPot: Bool = true
 
     // ————————— TUNE：到 Mac 上眼调这几个，让花“坐进”盆里 —————————
-    private let boxSize    = CGSize(width: 300, height: 320) // 整体画布
+    private let boxSize    = CGSize(width: 340, height: 380) // 整体画布
     private let potSize    : CGFloat = 190                    // 花盆大小
-    private let flowerSize : CGFloat = 260                    // 花的显示大小
-    private let flowerYOffset: CGFloat = -70                  // 花上移量（负=往上，坐进盆口）
+    private let flowerSize : CGFloat = 330                    // 花的显示大小（放大，作主体）
+    private let flowerYOffset: CGFloat = -20                  // 花上移量（负=往上，坐进盆口）；往下就把它调大（更接近 0）
+    private let potSpeed    : CGFloat = 0.5                   // 花盆动画速度（<1 更慢）
     // ————————————————————————————————————————————————————
 
     var body: some View {
         ZStack(alignment: .bottom) {
             if showPot {
-                LottiePlayer(name: "pot")
+                LottiePlayer(name: "pot", speed: potSpeed)
                     .frame(width: potSize, height: potSize)
             }
             LottiePlayer(name: FlowerCatalog.assetName(flowerIndex))
