@@ -1,71 +1,50 @@
 import SwiftUI
 
-/// A1 · 今天（首页）
-/// 基调：温暖、零数字、零红色、零倒计时。像陪伴，不像体检。
+/// A1 · 今天（首页）—— 养花「状态镜子」主页
+/// 一打开：一盆花当正中主角 + 一句暖话 + 下方「看看今天怎么样」。
+/// （天气/状态映射后续再接，见 设计-养花状态镜子.md）
 struct TodayView: View {
     @State private var showContactFamily = false
+    @AppStorage("selectedFlower") private var selectedFlower = 0
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    // 问候 + 一句暖心话
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("\(SampleData.name)，\(SampleData.greeting) ☀️")
-                            .font(.senior(.title))
-                            .foregroundStyle(LeLingColor.primaryText)
-                        Text(SampleData.greetingTip)
-                            .font(.senior(.body))
-                            .foregroundStyle(LeLingColor.secondaryText)
-                    }
-
-                    // 今天想做点什么
-                    Text("今天想做点什么？")
+                VStack(spacing: 18) {
+                    // 问候（放小，让位给花）
+                    Text("\(SampleData.name)，\(SampleData.greeting) ☀️")
                         .font(.senior(.headline))
                         .foregroundStyle(LeLingColor.primaryText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // 那盆花：主角
+                    PottedFlowerView(flowerIndex: selectedFlower)
+                        .frame(maxWidth: .infinity)
                         .padding(.top, 4)
 
-                    NavigationLink {
-                        LegExerciseIntroView()
-                    } label: {
-                        ActivityCard(
-                            emoji: "🪑",
-                            title: "陪您活动活动腿脚",
-                            subtitle: "坐下起立，慢慢来，不着急"
-                        )
-                    }
+                    // 一句暖话（永远往好里说）
+                    Text("今天花儿精神着呢～")
+                        .font(.senior(.title))
+                        .foregroundStyle(LeLingColor.primaryText)
+                        .multilineTextAlignment(.center)
 
-                    NavigationLink {
-                        CalmIntroView()
-                    } label: {
-                        ActivityCard(
-                            emoji: "🌿",
-                            title: "静一静，听听心跳",
-                            subtitle: "跟着呼吸放松一下"
-                        )
-                    }
+                    Text(SampleData.greetingTip)
+                        .font(.senior(.body))
+                        .foregroundStyle(LeLingColor.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
 
+                    // 一键：全部做一遍
                     NavigationLink {
-                        LegExerciseIntroView()   // TODO: 串成「腿脚操→静一静」连做
+                        LegExerciseIntroView()   // TODO: 串成「腿脚操→静一静」连做一遍
                     } label: {
-                        Text("✨ 一起做一遍（约 2 分钟）")
-                            .font(.senior(.headline))
-                            .foregroundStyle(LeLingColor.accentDeep)
-                            .frame(maxWidth: .infinity, minHeight: 60)
-                            .background(LeLingColor.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 18))
+                        Label("看看今天怎么样", systemImage: "sun.max.fill")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, minHeight: 74)
+                            .background(LeLingColor.accent, in: RoundedRectangle(cornerRadius: 22))
                     }
-
-                    // 上次（定性，不给数字）
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("上次 · 昨天做过了 👍")
-                            .font(.senior(.body))
-                            .foregroundStyle(LeLingColor.primaryText)
-                        Text("「那天状态挺好的」")
-                            .font(.senior(.caption))
-                            .foregroundStyle(LeLingColor.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .seniorCard()
+                    .padding(.top, 4)
 
                     // 用药提醒（柔性）
                     HStack {
@@ -98,34 +77,6 @@ struct TodayView: View {
                 ContactFamilyView()
             }
         }
-    }
-}
-
-/// 「今天」页的活动大入口卡。
-struct ActivityCard: View {
-    let emoji: String
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        HStack(spacing: 18) {
-            Text(emoji)
-                .font(.system(size: 44))
-                .frame(width: 60)
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.senior(.headline))
-                    .foregroundStyle(LeLingColor.primaryText)
-                Text(subtitle)
-                    .font(.senior(.caption))
-                    .foregroundStyle(LeLingColor.secondaryText)
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.headline)
-                .foregroundStyle(LeLingColor.secondaryText)
-        }
-        .seniorCard()
     }
 }
 

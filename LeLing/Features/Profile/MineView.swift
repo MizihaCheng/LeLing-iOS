@@ -21,6 +21,9 @@ struct MineView: View {
                     NavigationLink { FamilySettingsView() } label: {
                         MineRow(emoji: "👨‍👩‍👧", title: "家人", note: "联系人 · 谁收报告")
                     }
+                    NavigationLink { FlowerPickerView() } label: {
+                        MineRow(emoji: "🌸", title: "换一盆花", note: "挑一盆你喜欢的")
+                    }
                     NavigationLink { RemindersView() } label: {
                         MineRow(emoji: "🔔", title: "温柔提醒", note: "活动 / 用药提醒")
                     }
