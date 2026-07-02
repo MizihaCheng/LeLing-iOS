@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine   // @Published / ObservableObject 来自 Combine，需显式 import
 
 // MARK: - 腿脚操（椅子坐站，⭐️ demo 主角）
 //
