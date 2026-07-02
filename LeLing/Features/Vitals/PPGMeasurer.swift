@@ -163,13 +163,43 @@ final class PPGMeasurer: ObservableObject {
     private var timer: Timer?
 
     func start() {
+        #if targetEnvironment(simulator)
+        startSimulated()   // 模拟器无摄像头：跑一段假测量，让 UI 流程能走完
+        return
+        #else
         AVCaptureDevice.requestAccess(for: .video) { granted in
             Task { @MainActor in
                 guard granted else { self.phase = .failed; return }
                 self.beginMeasuring()
             }
         }
+        #endif
     }
+
+    #if targetEnvironment(simulator)
+    private func startSimulated() {
+        progress = 0
+        fingerOK = true
+        phase = .measuring
+        startDate = Date()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.tickSimulated() }
+        }
+    }
+
+    private func tickSimulated() {
+        guard let s = startDate else { return }
+        let e = Date().timeIntervalSince(s)
+        let simDuration = 5.0
+        progress = min(e / simDuration, 1)
+        if e >= simDuration {
+            timer?.invalidate(); timer = nil
+            heartRate = 74
+            respiration = 16
+            phase = .done
+        }
+    }
+    #endif
 
     private func beginMeasuring() {
         controller.start()

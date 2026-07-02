@@ -1,30 +1,23 @@
 import SwiftUI
 
-/// 适老化 Tab 外壳：图标大、文字大、四个主入口扁平直达。
+/// 适老 Tab 外壳（v2）：3 个大 Tab —— 今天 / 回顾 / 我的。
+/// 全局「联系家人」不占 Tab，从「今天」右上角进（见 TodayView）。
 struct ContentView: View {
-    @State private var tab = 0
-
     var body: some View {
-        TabView(selection: $tab) {
-            HomeView(onStartCheck: { tab = 1 })
-                .tabItem { Label("首页", systemImage: "house.fill") }
-                .tag(0)
+        TabView {
+            TodayView()
+                .tabItem { Label("今天", systemImage: "sun.max.fill") }
 
-            SelfCheckView()
-                .tabItem { Label("自查", systemImage: "heart.text.square.fill") }
-                .tag(1)
+            ReviewView()
+                .tabItem { Label("回顾", systemImage: "leaf.fill") }
 
-            TrendsView()
-                .tabItem { Label("趋势", systemImage: "chart.xyaxis.line") }
-                .tag(2)
-
-            ProfileView()
+            MineView()
                 .tabItem { Label("我的", systemImage: "person.crop.circle.fill") }
-                .tag(3)
         }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(LeLingStore())
 }
